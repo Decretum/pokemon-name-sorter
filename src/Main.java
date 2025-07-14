@@ -190,6 +190,8 @@ Dipplin
         for (String s : sorted) {
             System.out.println(s);
         }
+
+        System.out.println("Total Pokemon: " + sorted.size());
     }
 
     public static List<String> sort(String unsorted) {
