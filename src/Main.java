@@ -5,193 +5,31 @@ import java.util.List;
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
 
-    public static String INPUT = """
-Bulbasaur
-Ivysaur
-Venusaur
-Charmander
-Charizard
-Squirtle
-Blastoise
-Rattata
-Pikachu
-Sandshrew
-Nidoran F
-Nidoqueen
-Nidoran M
-Diglett
-Psyduck
-Golduck
-Growlithe
-Arcanine
-Poliwrath
-Alakazam
-Machop
-Machoke
-Ponyta
-Magnemite
-Magneton
-Shellder
-Cloyster
-Gengar
-Onix
-Exeggcute
-Koffing
-Rhyhorn
-Rhydon
-Chansey
-Kangaskhan
-Pinsir
-Magikarp
-Gyarados
-Eevee
-Jolteon
-Flareon
-Aerodactyl
-Snorlax
-Articuno
-Zapdos
-Moltres
-Dratini
-Dragonair
-Mewtwo
-Mew
-Totodile
-Croconaw
-Feraligatr
-Hoothoot
-Crobat
-Togepi
-Ampharos
-Wooper
-Slowking
-Unown
-Scizor
-Sneasel
-Delibird
-Skarmory
-Porygon2
-Smeargle
-Blissey
-Raikou
-Entei
-Suicune
-Lugia
-Ho-oh
-Torchic
-Blaziken
-Poochyena
-Linoone
-Shiftry
-Ralts
-Gardevoir
-Surskit
-Shedinja
-Mawile
-Aggron
-Roselia
-Spoink
-Trapinch
-Barboach
-Dusclops
-Absol
-Glalie
-Sealeo
-Clamperl
-Bagon
-Salamence
-Beldum
-Metagross
-Regice
-Registeel
-Latias
-Latios
-Groudon
-Rayquaza
-Jirachi
-Deoxys
-Chimchar
-Monferno
-Kricketot
-Kricketune
-Luxray
-Combee
-Floatzel
-Ambipom
-Bonsly
-Lucario
-Drapion
-Magnezone
-Mamoswine
-Gallade
-Froslass
-Rotom
-Azelf
-Dialga
-Palkia
-Heatran
-Giratina
-Cresselia
-Manaphy
-Tepig
-Emboar
-Oshawott
-Blitzle
-Gigalith
-Oddish
-Audino
-Conkeldurr
-Lilligant
-Vanillite
-Cubchoo
-Shelmet
-Hydreigon
-Reshiram
-Zekrom
-Kyurem
-Meloetta
-Greninja
-Talonflame
-Gogoat
-Aegislash
-Avalugg
-Xerneas
-Zygarde
-Rockruff
-Tsareena
-Silvally
-Mimikyu
-Kommo-o
-Tapu Lele
-Tapu Bulu
-Celesteela
-Blacephalon
-Meltan
-Corviknight
-Applin
-Toxel
-Hatterene
-Duraludon
-Enamorus
-Lechonk
-Oinkologne
-Nymble
-Revavroom
-Orthworm
-Dondozo
-Scream Tail
-Flutter Mane
-Dipplin
-            """;
+    private static final String INPUT_FILE = "input.txt";
+    private static final String OUTPUT_FILE = "output.txt";
 
     public static void main(String[] args) {
-        List<String> sorted = sort(INPUT);
+        List<String> sorted = sort(readInput());
 
-        for (String s : sorted) {
-            System.out.println(s);
-        }
+        writeOutput(sorted);
 
         System.out.println("Total Pokemon: " + sorted.size());
+    }
+
+    private static void writeOutput(List<String> sorted) {
+        try {
+            java.nio.file.Files.write(java.nio.file.Paths.get(OUTPUT_FILE), sorted);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static String readInput() {
+        try {
+            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(INPUT_FILE)));
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static List<String> sort(String unsorted) {
