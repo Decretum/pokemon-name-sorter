@@ -5,6 +5,7 @@ import java.util.List;
 // then press Enter. You can now see whitespace characters in your code.
 public class Main {
 
+    private static final String POKEMON_FILE = "src/pokemon.txt";
     private static final String INPUT_FILE = "input.txt";
     private static final String OUTPUT_FILE = "output.txt";
 
@@ -33,7 +34,7 @@ public class Main {
     }
 
     public static List<String> sort(String unsorted) {
-        String[] pokemon = AllPokemon.POKEMON.split("\n");
+        String[] pokemon = readPokemon();
         String[] input = unsorted.split("\n");
 
         ArrayList<String> sorted = new ArrayList<>();
@@ -66,5 +67,13 @@ public class Main {
             }
         }
         throw new RuntimeException("Unknown Pokemon: " + name);
+    }
+
+    private static String[] readPokemon() {
+        try {
+            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(POKEMON_FILE))).split("\n");
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
