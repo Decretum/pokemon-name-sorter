@@ -1,7 +1,9 @@
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,11 +36,11 @@ public class MainTest {
                 Feraligatr
                 Togepi
                 """;
-        Set<String> sorted = new HashSet<>(Main.sort(input));
+        List<String> sorted = Main.sort(input);
         Set<String> unsorted = Arrays.stream(input.split("\n")).filter(s -> !s.isBlank()).collect(Collectors.toSet());
 
-        // After set deduping, check that no elements were added ore removed
-        assertEquals(sorted.size(), unsorted.size());
+        // After automatic deduping, check that no elements were added or removed
+        assertEquals(unsorted.size(), sorted.size());
 
         // Check that each element is accounted for
         for (String s : sorted) {
@@ -49,5 +51,67 @@ public class MainTest {
         }
     }
 
+    @Test
+    public void dedupe() {
+        String input = """
+                Pikachu
+                Onix
+                Pikachu
+                Blacephalon
+                Onix
+                Pikachu
+                """;
+        List<String> sorted = Main.sort(input);
 
+        assertEquals(3, sorted.size());
+        assertEquals("Pikachu", sorted.get(0));
+        assertEquals("Onix", sorted.get(1));
+        assertEquals("Blacephalon", sorted.get(2));
+    }
+
+    @Test
+    public void dedupeCaseInsensitiveAndWhitespace() {
+        String input = """
+                pikachu
+                Pikachu
+                  PIKACHU 
+                """;
+        List<String> sorted = Main.sort(input);
+
+        assertEquals(1, sorted.size());
+    }
+
+    @Test
+    public void dedupePrintsNotification() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(outContent));
+            String input = """
+                    Pikachu
+                    Pikachu
+                    """;
+            Main.sort(input);
+            assertTrue(outContent.toString().contains("Duplicates removed: 1"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void noDuplicatesDoesNotPrintNotification() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(outContent));
+            String input = """
+                    Pikachu
+                    Raichu
+                    """;
+            Main.sort(input);
+            assertTrue(outContent.toString().isEmpty());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
 }
