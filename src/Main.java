@@ -44,11 +44,10 @@ public class Main {
 
                 boolean added = false;
                 for (int x = 0; x < sorted.size(); x++) {
-                    if (!added) {
-                        if (dexNumber < getDexNumber(sorted.get(x), pokemon)) {
-                            sorted.add(x, entry);
-                            added = true;
-                        }
+                    if (dexNumber < getDexNumber(sorted.get(x), pokemon)) {
+                        sorted.add(x, entry);
+                        added = true;
+                        break;
                     }
                 }
                 if (!added) {
@@ -57,7 +56,21 @@ public class Main {
             }
         }
 
-        return sorted;
+        ArrayList<String> deduped = new ArrayList<>();
+        int duplicatesRemoved = 0;
+        for (String entry : sorted) {
+            if (!deduped.isEmpty() && deduped.get(deduped.size() - 1).trim().equalsIgnoreCase(entry.trim())) {
+                duplicatesRemoved++;
+            } else {
+                deduped.add(entry);
+            }
+        }
+
+        if (duplicatesRemoved > 0) {
+            System.out.println("Duplicates removed: " + duplicatesRemoved);
+        }
+
+        return deduped;
     }
 
     private static int getDexNumber(String name, String[] pokemon) {
