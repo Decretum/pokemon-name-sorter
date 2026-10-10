@@ -3,6 +3,7 @@ import org.junit.Test;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -113,5 +114,53 @@ public class MainTest {
         } finally {
             System.setOut(originalOut);
         }
+    }
+
+    @Test
+    public void findMissingReturnsMissingPokemonInPokedexOrder() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon"};
+        List<String> present = List.of("Venusaur", "Bulbasaur");
+
+        List<String> missing = Main.findMissing(present, allPokemon);
+
+        assertEquals(List.of("Ivysaur", "Charmander", "Charmeleon"), missing);
+    }
+
+    @Test
+    public void findMissingCaseInsensitiveAndWhitespace() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur", "Venusaur"};
+        List<String> present = List.of("  bulbasaur  ", "IVYSAUR");
+
+        List<String> missing = Main.findMissing(present, allPokemon);
+
+        assertEquals(List.of("Venusaur"), missing);
+    }
+
+    @Test
+    public void findMissingWhenAllPresent() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur"};
+        List<String> present = List.of("Bulbasaur", "Ivysaur");
+
+        List<String> missing = Main.findMissing(present, allPokemon);
+
+        assertTrue(missing.isEmpty());
+    }
+
+    @Test
+    public void findMissingWhenNonePresent() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur"};
+        List<String> present = Collections.emptyList();
+
+        List<String> missing = Main.findMissing(present, allPokemon);
+
+        assertEquals(List.of("Bulbasaur", "Ivysaur"), missing);
+    }
+
+    @Test
+    public void findMissingUsingPokemonFile() {
+        List<String> missing = Main.findMissing(List.of("Bulbasaur"));
+        assertFalse(missing.contains("Bulbasaur"));
+        assertTrue(missing.contains("Ivysaur"));
+        assertTrue(missing.contains("Butterfree"));
     }
 }
