@@ -163,4 +163,75 @@ public class MainTest {
         assertTrue(missing.contains("Ivysaur"));
         assertTrue(missing.contains("Butterfree"));
     }
+
+    @Test
+    public void findMissingConsidersTransitPokemon() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon"};
+        List<String> present = List.of("Bulbasaur");
+        List<String> inTransit = List.of("Charmander");
+
+        List<String> missing = Main.findMissing(present, inTransit, allPokemon);
+
+        assertEquals(List.of("Ivysaur", "Venusaur", "Charmeleon"), missing);
+    }
+
+    @Test
+    public void checkTransitOverlapPrintsWarningWhenOverlapping() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(outContent));
+            List<String> input = List.of("Pikachu", "Charmander", "Squirtle");
+            List<String> transit = List.of("Bulbasaur", "pikachu", "Squirtle");
+
+            List<String> overlapping = Main.checkTransitOverlap(input, transit);
+
+            assertEquals(List.of("pikachu", "Squirtle"), overlapping);
+            assertTrue(outContent.toString().contains("Warning: Pokemon present in both transit.txt and input.txt: pikachu, Squirtle"));
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void checkTransitOverlapNoOverlapPrintsNothing() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        try {
+            System.setOut(new PrintStream(outContent));
+            List<String> input = List.of("Pikachu", "Charmander");
+            List<String> transit = List.of("Bulbasaur", "Squirtle");
+
+            List<String> overlapping = Main.checkTransitOverlap(input, transit);
+
+            assertTrue(overlapping.isEmpty());
+            assertTrue(outContent.toString().isEmpty());
+        } finally {
+            System.setOut(originalOut);
+        }
+    }
+
+    @Test
+    public void validateTransitThrowsExceptionForUnknownPokemon() {
+        List<String> transit = List.of("Pikachu", "NotAPokemon");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> Main.validateTransit(transit));
+        assertEquals("Unknown Pokemon: NotAPokemon", exception.getMessage());
+    }
+
+    @Test
+    public void validateTransitSucceedsForValidPokemon() {
+        List<String> transit = List.of("Pikachu", "Bulbasaur");
+        assertDoesNotThrow(() -> Main.validateTransit(transit));
+    }
+
+    @Test
+    public void findMissingThrowsExceptionForUnknownTransitPokemon() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur"};
+        List<String> present = List.of("Bulbasaur");
+        List<String> transit = List.of("FakePokemon");
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                Main.findMissing(present, transit, allPokemon));
+        assertEquals("Unknown Pokemon: FakePokemon", exception.getMessage());
+    }
 }

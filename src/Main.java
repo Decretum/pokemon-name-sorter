@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,13 +12,18 @@ public class Main {
     private static final String INPUT_FILE = "input.txt";
     private static final String OUTPUT_FILE = "output.txt";
     private static final String MISSING_FILE = "missing.txt";
+    private static final String TRANSIT_FILE = "transit.txt";
 
     public static void main(String[] args) {
         List<String> sorted = sort(readInput());
 
         writeOutput(sorted);
 
-        List<String> missing = findMissing(sorted);
+        List<String> transit = readTransit();
+        validateTransit(transit);
+        checkTransitOverlap(sorted, transit);
+
+        List<String> missing = findMissing(sorted, transit);
         writeMissing(missing);
 
         System.out.println("Total Pokemon: " + sorted.size());
@@ -45,6 +51,56 @@ public class Main {
         } catch (java.io.IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static List<String> readTransit() {
+        java.nio.file.Path path = java.nio.file.Paths.get(TRANSIT_FILE);
+        if (!java.nio.file.Files.exists(path)) {
+            return Collections.emptyList();
+        }
+        try {
+            return java.nio.file.Files.readAllLines(path);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void validateTransit(List<String> transit) {
+        validateTransit(transit, readPokemon());
+    }
+
+    public static void validateTransit(List<String> transit, String[] allPokemon) {
+        for (String p : transit) {
+            if (p != null && !p.isBlank()) {
+                getDexNumber(p, allPokemon);
+            }
+        }
+    }
+
+    public static List<String> checkTransitOverlap(List<String> inputList, List<String> transitList) {
+        Set<String> inputSet = new HashSet<>();
+        for (String p : inputList) {
+            if (p != null && !p.isBlank()) {
+                inputSet.add(p.trim().toLowerCase());
+            }
+        }
+
+        List<String> overlapping = new ArrayList<>();
+        Set<String> seenOverlapping = new HashSet<>();
+        for (String p : transitList) {
+            if (p != null && !p.isBlank()) {
+                String normalized = p.trim().toLowerCase();
+                if (inputSet.contains(normalized) && seenOverlapping.add(normalized)) {
+                    overlapping.add(p.trim());
+                }
+            }
+        }
+
+        if (!overlapping.isEmpty()) {
+            System.out.println("Warning: Pokemon present in both transit.txt and input.txt: " + String.join(", ", overlapping));
+        }
+
+        return overlapping;
     }
 
     public static List<String> sort(String unsorted) {
@@ -88,20 +144,35 @@ public class Main {
     }
 
     public static List<String> findMissing(List<String> present) {
-        return findMissing(present, readPokemon());
+        return findMissing(present, Collections.emptyList(), readPokemon());
+    }
+
+    public static List<String> findMissing(List<String> present, List<String> inTransit) {
+        return findMissing(present, inTransit, readPokemon());
     }
 
     public static List<String> findMissing(List<String> present, String[] allPokemon) {
-        Set<String> presentSet = new HashSet<>();
+        return findMissing(present, Collections.emptyList(), allPokemon);
+    }
+
+    public static List<String> findMissing(List<String> present, List<String> inTransit, String[] allPokemon) {
+        validateTransit(inTransit, allPokemon);
+
+        Set<String> accountedFor = new HashSet<>();
         for (String p : present) {
             if (p != null && !p.isBlank()) {
-                presentSet.add(p.trim().toLowerCase());
+                accountedFor.add(p.trim().toLowerCase());
+            }
+        }
+        for (String p : inTransit) {
+            if (p != null && !p.isBlank()) {
+                accountedFor.add(p.trim().toLowerCase());
             }
         }
 
         List<String> missing = new ArrayList<>();
         for (String p : allPokemon) {
-            if (p != null && !p.isBlank() && !presentSet.contains(p.trim().toLowerCase())) {
+            if (p != null && !p.isBlank() && !accountedFor.contains(p.trim().toLowerCase())) {
                 missing.add(p.trim());
             }
         }
