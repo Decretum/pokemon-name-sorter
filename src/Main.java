@@ -1,13 +1,19 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// Press Shift twice to open the Search Everywhere dialog and type `show whitespaces`,
-// then press Enter. You can now see whitespace characters in your code.
 public class Main {
 
+    // ==========================================
+    // File Constants
+    // ==========================================
     private static final String POKEMON_FILE = "src/pokemon.txt";
     private static final String INPUT_FILE = "input.txt";
     private static final String OUTPUT_FILE = "output.txt";
@@ -15,58 +21,69 @@ public class Main {
     private static final String TRANSIT_FILE = "transit.txt";
     private static final String UNAVAILABLE_FILE = "unavailable.txt";
 
+    // ==========================================
+    // Main Entry Point
+    // ==========================================
     public static void main(String[] args) {
-        List<String> sorted = sort(readInput());
-
-        writeOutput(sorted);
-
+        // 1. Read all input files
+        String[] allPokemon = readPokemon();
+        List<String> input = readInput();
         List<String> transit = readTransit();
-        validateTransit(transit);
-        checkTransitOverlap(sorted, transit);
-
         List<String> unavailable = readUnavailable();
-        validateUnavailable(unavailable);
 
-        List<String> missing = findMissing(sorted, transit, unavailable);
-        writeMissing(missing);
+        // 2. Validate all input files
+        validateInput(input, allPokemon);
+        validateTransit(transit, allPokemon);
+        validateUnavailable(unavailable, allPokemon);
+        checkTransitOverlap(input, transit);
 
-        System.out.println("Total Pokemon: " + sorted.size());
+        // 3. Calculate and write output files one at a time
+        List<String> sorted = writeOutputFile(input, allPokemon);
+        writeMissingFile(sorted, transit, unavailable, allPokemon);
     }
 
-    private static void writeOutput(List<String> sorted) {
-        writeFile(OUTPUT_FILE, sorted);
+    // ==========================================
+    // 1. Input File Reading
+    // ==========================================
+
+    private static String[] readPokemon() {
+        return readFile(POKEMON_FILE).toArray(new String[0]);
     }
 
-    private static void writeMissing(List<String> missing) {
-        writeFile(MISSING_FILE, missing);
-    }
-
-    private static void writeFile(String filePath, List<String> lines) {
-        try {
-            java.nio.file.Files.write(java.nio.file.Paths.get(filePath), lines);
-        } catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static String readInput() {
-        try {
-            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(INPUT_FILE)));
-        } catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
+    private static List<String> readInput() {
+        return readFile(INPUT_FILE);
     }
 
     private static List<String> readTransit() {
-        java.nio.file.Path path = java.nio.file.Paths.get(TRANSIT_FILE);
-        if (!java.nio.file.Files.exists(path)) {
+        return readFile(TRANSIT_FILE);
+    }
+
+    private static List<String> readUnavailable() {
+        return readFile(UNAVAILABLE_FILE);
+    }
+
+    private static List<String> readFile(String filePath) {
+        Path path = Paths.get(filePath);
+        if (!Files.exists(path)) {
             return Collections.emptyList();
         }
         try {
-            return java.nio.file.Files.readAllLines(path);
-        } catch (java.io.IOException e) {
+            return Files.readAllLines(path);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    // ==========================================
+    // 2. Input File Validation
+    // ==========================================
+
+    public static void validateInput(List<String> input) {
+        validateInput(input, readPokemon());
+    }
+
+    public static void validateInput(List<String> input, String[] allPokemon) {
+        validatePokemon(input, allPokemon);
     }
 
     public static void validateTransit(List<String> transit) {
@@ -74,23 +91,7 @@ public class Main {
     }
 
     public static void validateTransit(List<String> transit, String[] allPokemon) {
-        for (String p : transit) {
-            if (p != null && !p.isBlank()) {
-                getDexNumber(p, allPokemon);
-            }
-        }
-    }
-
-    private static List<String> readUnavailable() {
-        java.nio.file.Path path = java.nio.file.Paths.get(UNAVAILABLE_FILE);
-        if (!java.nio.file.Files.exists(path)) {
-            return Collections.emptyList();
-        }
-        try {
-            return java.nio.file.Files.readAllLines(path);
-        } catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
+        validatePokemon(transit, allPokemon);
     }
 
     public static void validateUnavailable(List<String> unavailable) {
@@ -98,7 +99,11 @@ public class Main {
     }
 
     public static void validateUnavailable(List<String> unavailable, String[] allPokemon) {
-        for (String p : unavailable) {
+        validatePokemon(unavailable, allPokemon);
+    }
+
+    public static void validatePokemon(List<String> pokemonList, String[] allPokemon) {
+        for (String p : pokemonList) {
             if (p != null && !p.isBlank()) {
                 getDexNumber(p, allPokemon);
             }
@@ -131,13 +136,55 @@ public class Main {
         return overlapping;
     }
 
-    public static List<String> sort(String unsorted) {
-        String[] pokemon = readPokemon();
-        String[] input = unsorted.split("\n");
+    // ==========================================
+    // 3. Output File Calculation & Writing
+    // ==========================================
 
+    private static List<String> writeOutputFile(List<String> input, String[] allPokemon) {
+        List<String> sorted = sort(input, allPokemon);
+        writeOutput(sorted);
+        System.out.println("Total Pokemon: " + sorted.size());
+        return sorted;
+    }
+
+    private static List<String> writeMissingFile(List<String> present, List<String> inTransit, List<String> unavailable, String[] allPokemon) {
+        List<String> missing = findMissing(present, inTransit, unavailable, allPokemon);
+        writeMissing(missing);
+        return missing;
+    }
+
+    private static void writeOutput(List<String> sorted) {
+        writeFile(OUTPUT_FILE, sorted);
+    }
+
+    private static void writeMissing(List<String> missing) {
+        writeFile(MISSING_FILE, missing);
+    }
+
+    private static void writeFile(String filePath, List<String> lines) {
+        try {
+            Files.write(Paths.get(filePath), lines);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // ==========================================
+    // Business Logic / Processing
+    // ==========================================
+
+    public static List<String> sort(String unsorted) {
+        return sort(Arrays.asList(unsorted.split("\n")));
+    }
+
+    public static List<String> sort(List<String> input) {
+        return sort(input, readPokemon());
+    }
+
+    public static List<String> sort(List<String> input, String[] pokemon) {
         ArrayList<String> sorted = new ArrayList<>();
         for (String entry : input) {
-            if (!entry.isBlank()) {
+            if (entry != null && !entry.isBlank()) {
                 int dexNumber = getDexNumber(entry, pokemon);
 
                 boolean added = false;
@@ -196,21 +243,9 @@ public class Main {
         validateUnavailable(unavailable, allPokemon);
 
         Set<String> accountedFor = new HashSet<>();
-        for (String p : present) {
-            if (p != null && !p.isBlank()) {
-                accountedFor.add(p.trim().toLowerCase());
-            }
-        }
-        for (String p : inTransit) {
-            if (p != null && !p.isBlank()) {
-                accountedFor.add(p.trim().toLowerCase());
-            }
-        }
-        for (String p : unavailable) {
-            if (p != null && !p.isBlank()) {
-                accountedFor.add(p.trim().toLowerCase());
-            }
-        }
+        accountFor(accountedFor, present);
+        accountFor(accountedFor, inTransit);
+        accountFor(accountedFor, unavailable);
 
         List<String> missing = new ArrayList<>();
         for (String p : allPokemon) {
@@ -221,6 +256,14 @@ public class Main {
         return missing;
     }
 
+    private static void accountFor(Set<String> accountedFor, List<String> pokemonList) {
+        for (String p : pokemonList) {
+            if (p != null && !p.isBlank()) {
+                accountedFor.add(p.trim().toLowerCase());
+            }
+        }
+    }
+
     private static int getDexNumber(String name, String[] pokemon) {
         for (int x = 1; x <= pokemon.length; x++) {
             if (name.trim().equalsIgnoreCase(pokemon[x - 1].trim())) {
@@ -228,13 +271,5 @@ public class Main {
             }
         }
         throw new RuntimeException("Unknown Pokemon: " + name);
-    }
-
-    private static String[] readPokemon() {
-        try {
-            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(POKEMON_FILE))).split("\n");
-        } catch (java.io.IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

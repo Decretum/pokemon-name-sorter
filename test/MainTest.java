@@ -212,6 +212,19 @@ public class MainTest {
     }
 
     @Test
+    public void validateInputThrowsExceptionForUnknownPokemon() {
+        List<String> input = List.of("Pikachu", "NotAPokemon");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> Main.validateInput(input));
+        assertEquals("Unknown Pokemon: NotAPokemon", exception.getMessage());
+    }
+
+    @Test
+    public void validateInputSucceedsForValidPokemon() {
+        List<String> input = List.of("Pikachu", "Bulbasaur");
+        assertDoesNotThrow(() -> Main.validateInput(input));
+    }
+
+    @Test
     public void validateTransitThrowsExceptionForUnknownPokemon() {
         List<String> transit = List.of("Pikachu", "NotAPokemon");
         RuntimeException exception = assertThrows(RuntimeException.class, () -> Main.validateTransit(transit));
