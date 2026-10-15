@@ -1,7 +1,13 @@
 ### IntelliJ IDEA ###
+# Compiled output
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+
+# Personal workspace state (differs per developer)
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
 
 ### Eclipse ###
 .apt_generated
