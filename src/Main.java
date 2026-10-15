@@ -13,6 +13,7 @@ public class Main {
     private static final String OUTPUT_FILE = "output.txt";
     private static final String MISSING_FILE = "missing.txt";
     private static final String TRANSIT_FILE = "transit.txt";
+    private static final String UNAVAILABLE_FILE = "unavailable.txt";
 
     public static void main(String[] args) {
         List<String> sorted = sort(readInput());
@@ -23,7 +24,10 @@ public class Main {
         validateTransit(transit);
         checkTransitOverlap(sorted, transit);
 
-        List<String> missing = findMissing(sorted, transit);
+        List<String> unavailable = readUnavailable();
+        validateUnavailable(unavailable);
+
+        List<String> missing = findMissing(sorted, transit, unavailable);
         writeMissing(missing);
 
         System.out.println("Total Pokemon: " + sorted.size());
@@ -71,6 +75,30 @@ public class Main {
 
     public static void validateTransit(List<String> transit, String[] allPokemon) {
         for (String p : transit) {
+            if (p != null && !p.isBlank()) {
+                getDexNumber(p, allPokemon);
+            }
+        }
+    }
+
+    private static List<String> readUnavailable() {
+        java.nio.file.Path path = java.nio.file.Paths.get(UNAVAILABLE_FILE);
+        if (!java.nio.file.Files.exists(path)) {
+            return Collections.emptyList();
+        }
+        try {
+            return java.nio.file.Files.readAllLines(path);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void validateUnavailable(List<String> unavailable) {
+        validateUnavailable(unavailable, readPokemon());
+    }
+
+    public static void validateUnavailable(List<String> unavailable, String[] allPokemon) {
+        for (String p : unavailable) {
             if (p != null && !p.isBlank()) {
                 getDexNumber(p, allPokemon);
             }
@@ -144,19 +172,28 @@ public class Main {
     }
 
     public static List<String> findMissing(List<String> present) {
-        return findMissing(present, Collections.emptyList(), readPokemon());
+        return findMissing(present, Collections.emptyList(), Collections.emptyList(), readPokemon());
     }
 
     public static List<String> findMissing(List<String> present, List<String> inTransit) {
-        return findMissing(present, inTransit, readPokemon());
+        return findMissing(present, inTransit, Collections.emptyList(), readPokemon());
+    }
+
+    public static List<String> findMissing(List<String> present, List<String> inTransit, List<String> unavailable) {
+        return findMissing(present, inTransit, unavailable, readPokemon());
     }
 
     public static List<String> findMissing(List<String> present, String[] allPokemon) {
-        return findMissing(present, Collections.emptyList(), allPokemon);
+        return findMissing(present, Collections.emptyList(), Collections.emptyList(), allPokemon);
     }
 
     public static List<String> findMissing(List<String> present, List<String> inTransit, String[] allPokemon) {
+        return findMissing(present, inTransit, Collections.emptyList(), allPokemon);
+    }
+
+    public static List<String> findMissing(List<String> present, List<String> inTransit, List<String> unavailable, String[] allPokemon) {
         validateTransit(inTransit, allPokemon);
+        validateUnavailable(unavailable, allPokemon);
 
         Set<String> accountedFor = new HashSet<>();
         for (String p : present) {
@@ -165,6 +202,11 @@ public class Main {
             }
         }
         for (String p : inTransit) {
+            if (p != null && !p.isBlank()) {
+                accountedFor.add(p.trim().toLowerCase());
+            }
+        }
+        for (String p : unavailable) {
             if (p != null && !p.isBlank()) {
                 accountedFor.add(p.trim().toLowerCase());
             }

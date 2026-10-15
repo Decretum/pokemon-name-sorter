@@ -116,6 +116,7 @@ Jolteon
 Flareon
 Porygon
 Omanyte
+Kabuto
 Aerodactyl
 Snorlax
 Articuno
@@ -235,6 +236,7 @@ Slakoth
 Vigoroth
 Slaking
 Shedinja
+Whismur
 Exploud
 Makuhita
 Hariyama
@@ -331,6 +333,7 @@ Luxio
 Luxray
 Budew
 Roserade
+Cranidos
 Shieldon
 Bastiodon
 Burmy
@@ -444,6 +447,8 @@ Cofagrigus
 Archen
 Trubbish
 Garbodor
+Zorua
+Zoroark
 Gothitelle
 Solosis
 Duosion
@@ -723,8 +728,14 @@ Chi-Yu
 Koraidon
 Miraidon
 Dipplin
-Whismur
-Cranidos
-Kabuto
-Zorua
-Zoroark
+Buizel
+Togedemaru
+Tranquill
+Shuckle
+Minccino
+Hattrem
+Jynx
+Poliwag
+Geodude
+Heatmor
+Torkoal

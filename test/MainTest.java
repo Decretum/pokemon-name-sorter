@@ -234,4 +234,41 @@ public class MainTest {
                 Main.findMissing(present, transit, allPokemon));
         assertEquals("Unknown Pokemon: FakePokemon", exception.getMessage());
     }
+
+    @Test
+    public void findMissingConsidersUnavailablePokemon() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur", "Venusaur", "Charmander", "Charmeleon"};
+        List<String> present = List.of("Bulbasaur");
+        List<String> inTransit = List.of("Charmander");
+        List<String> unavailable = List.of("Venusaur");
+
+        List<String> missing = Main.findMissing(present, inTransit, unavailable, allPokemon);
+
+        assertEquals(List.of("Ivysaur", "Charmeleon"), missing);
+    }
+
+    @Test
+    public void validateUnavailableThrowsExceptionForUnknownPokemon() {
+        List<String> unavailable = List.of("Pikachu", "NotAPokemon");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> Main.validateUnavailable(unavailable));
+        assertEquals("Unknown Pokemon: NotAPokemon", exception.getMessage());
+    }
+
+    @Test
+    public void validateUnavailableSucceedsForValidPokemon() {
+        List<String> unavailable = List.of("Pikachu", "Bulbasaur");
+        assertDoesNotThrow(() -> Main.validateUnavailable(unavailable));
+    }
+
+    @Test
+    public void findMissingThrowsExceptionForUnknownUnavailablePokemon() {
+        String[] allPokemon = new String[]{"Bulbasaur", "Ivysaur"};
+        List<String> present = List.of("Bulbasaur");
+        List<String> transit = Collections.emptyList();
+        List<String> unavailable = List.of("FakePokemon");
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () ->
+                Main.findMissing(present, transit, unavailable, allPokemon));
+        assertEquals("Unknown Pokemon: FakePokemon", exception.getMessage());
+    }
 }
